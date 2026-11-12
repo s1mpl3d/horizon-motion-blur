@@ -52,7 +52,8 @@ This is the same reprojection approach as [natural-motionblur](https://github.co
 ## Known limitations
 
 - Only camera motion is blurred. Mobs and players moving in front of a still camera stay sharp.
-- Hasn't been tested in game yet. Horizon's `horizon-mixins` accepts it and the patched client passes `cargo check`. Bug reports are welcome in [Issues](../../issues).
+
+Found a bug? Open an [issue](../../issues).
 
 ## Building from source
 
