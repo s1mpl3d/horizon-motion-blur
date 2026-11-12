@@ -1,50 +1,70 @@
 # Horizon Motion Blur
 
-Mod nativo (`.hnmod`) de motion blur para o [Horizon](https://github.com/horizon-rust/horizon), o Minecraft reescrito em Rust.
+Cinematic, camera-based motion blur for [Horizon](https://github.com/horizon-rust/horizon), the Minecraft client rewritten in Rust.
 
-O mundo é borrado ao longo do movimento da câmera, como o obturador de uma câmera. A mão, o HUD e as telas são desenhados depois do blur, então continuam nítidos.
+The world is blurred along the camera's motion, like a real camera's shutter. Your hand, the HUD and menus are drawn after the blur, so they stay sharp.
 
-## Instalação
+## Features
 
-1. Baixe `motion_blur.hnmod`.
-2. Coloque em `%APPDATA%\horizon\horizon-native-mods\`.
-3. Abra o launcher do Horizon e recompile os mods nativos.
-4. No jogo, ative em **Options > Mods > Motion Blur**.
+- **Per-pixel blur.** Uses the world's depth to work out how far each pixel moved, rather than smearing whole frames together.
+- **Hand and HUD stay sharp.** The blur runs before the first-person hand, the HUD and screens are drawn.
+- **Consistent at any frame rate.** Optionally keeps the blur the same length as at 60 FPS, so 240 FPS doesn't make it disappear.
+- **Adjustable.** Strength and sample count from the in-game settings page.
+- **No teleport smears.** Frames where the camera jumps more than 16 blocks aren't blurred.
+- **Zero cost when off.** Turn it off in Options > Mods and the pass is skipped.
 
-## Configurações
+## Installation
 
-| Opção | Valores | Padrão |
+1. Download [`motion_blur.hnmod`](motion_blur.hnmod).
+2. Put it in `%APPDATA%\horizon\horizon-native-mods\`.
+3. Open the Horizon launcher and rebuild native mods.
+4. In game, open **Options > Mods > Motion Blur**.
+
+## Settings
+
+| Setting | Values | Default |
 | --- | --- | --- |
 | Strength | 25%, 50%, 75%, 100%, 150%, 200% | 75% |
-| Quality | 8, 12, 16, 24 amostras | 12 |
+| Quality | 8, 12, 16, 24 samples | 12 |
 | Same at any FPS | ON / OFF | ON |
 
-**Same at any FPS** mantém o blur com o tamanho que teria a 60 FPS. Desligado, o blur diminui quanto maior o FPS, como numa câmera real.
+With **Same at any FPS** off, the blur gets shorter as your frame rate rises, as with a physical camera.
 
-As configurações ficam em `%APPDATA%\horizon\horizon-mods\.horizon-mod-data\motion_blur\`.
+Settings are stored in `%APPDATA%\horizon\horizon-mods\.horizon-mod-data\motion_blur\`.
 
-## Como funciona
+## How it works
 
-O mod usa o hook `native_world_drawn`, que roda depois que o mundo é desenhado e antes da mão e do HUD. Para cada pixel, ele:
+The mod hooks `native_world_drawn`, which runs once the world is drawn and before the hand and HUD. For each pixel it:
 
-1. lê a profundidade do mundo (pedida via `native_render_needs`);
-2. reconstrói a posição do ponto relativa à câmera;
-3. projeta essa posição com as matrizes do frame anterior;
-4. tira várias amostras da imagem ao longo da diferença entre as duas posições na tela.
+1. reads the world's depth (requested through `native_render_needs`);
+2. rebuilds the point's position relative to the camera;
+3. projects that position with last frame's camera matrices;
+4. averages samples of the image along the on-screen difference between the two positions.
 
-É a mesma ideia de reprojeção do [natural-motionblur](https://github.com/ItsPasi/natural-motionblur-fabric) e do [motionblur](https://github.com/Noryea/motionblur-fabric). O blur vem só do movimento da câmera: entidades que se movem com a câmera parada não são borradas. Em teleportes (mais de 16 blocos num frame) o blur é pulado.
+This is the same reprojection approach as [natural-motionblur](https://github.com/ItsPasi/natural-motionblur-fabric) and [motionblur](https://github.com/Noryea/motionblur-fabric) on Fabric.
 
-## Compatibilidade
+## Compatibility
 
-- Precisa de `"hooks": 58` (os hooks de render), então compila em qualquer Horizon com essa versão de hooks ou mais nova.
-- Testado no commit `fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca` (Minecraft 26.3): o `horizon-mixins` aceita o mod e o `cargo check` do cliente passa sem erros.
-- No OpenGL, se a imagem do frame não puder ser copiada (`COPY_SRC`), o mod não faz nada.
+- Needs native hooks API 58 (`"hooks": 58`, the render hooks), so it builds on any Horizon that has them.
+- Built against Horizon `fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca` (Minecraft 26.3).
+- On OpenGL, if the frame's image can't be copied (`COPY_SRC`), the mod does nothing.
 
-## Código
+## Known limitations
 
-- `motion_blur/horizon-native.json`: manifesto do mod.
-- `motion_blur/mixins/motion_blur/horizon-mixin.toml`: módulos e injeções.
-- `motion_blur/mixins/motion_blur/runtime.rs`: configurações, shader WGSL e o passe de blur.
-- Os outros `.rs` são os helpers de cada hook.
+- Only camera motion is blurred. Mobs and players moving in front of a still camera stay sharp.
+- Hasn't been tested in game yet. Horizon's `horizon-mixins` accepts it and the patched client passes `cargo check`. Bug reports are welcome in [Issues](../../issues).
 
-Para gerar o `.hnmod`, compacte em zip o conteúdo da pasta `motion_blur/` (com `horizon-native.json` na raiz do zip).
+## Building from source
+
+The launcher compiles the mod into the game, so there's no separate build step. To make the `.hnmod`, zip the contents of `motion_blur/` with `horizon-native.json` at the root of the zip.
+
+| File | Purpose |
+| --- | --- |
+| `motion_blur/horizon-native.json` | Mod manifest |
+| `motion_blur/mixins/motion_blur/horizon-mixin.toml` | Modules and hook injections |
+| `motion_blur/mixins/motion_blur/runtime.rs` | Settings, WGSL shader and the blur pass |
+| `motion_blur/mixins/motion_blur/*.rs` | One helper per hook |
+
+## Credits
+
+Inspired by [natural-motionblur](https://github.com/ItsPasi/natural-motionblur-fabric), [PolyBlur](https://github.com/Polyfrost/PolyBlur) and [motionblur](https://github.com/Noryea/motionblur-fabric).
