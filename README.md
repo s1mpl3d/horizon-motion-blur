@@ -57,11 +57,19 @@ Found a bug? Open an [issue](../../issues).
 
 ## Building from source
 
-The launcher compiles the mod into the game, so there's no separate build step. To make the `.hnmod`, zip the contents of `motion_blur/` with `horizon-native.json` at the root of the zip.
+The launcher compiles the mod into the game, so there's no separate build step. To make the `.hnmod`, zip `motion_blur/horizon-native.json` and `motion_blur/mixins/`, with `horizon-native.json` at the root of the zip.
+
+Run the tests (settings, frame-rate scaling, and WGSL validation without a GPU):
+
+```sh
+cd motion_blur && cargo test
+```
 
 | File | Purpose |
 | --- | --- |
-| `motion_blur/horizon-native.json` | Mod manifest |
+| `motion_blur/horizon-native.json` | Mod manifest, packed into the `.hnmod` |
+| `motion_blur/compatibility.json` | Hooks API, tested Horizon and horizon-mixins commits |
+| `motion_blur/Cargo.toml` | Builds `runtime.rs` as a library for its tests |
 | `motion_blur/mixins/motion_blur/horizon-mixin.toml` | Modules and hook injections |
 | `motion_blur/mixins/motion_blur/runtime.rs` | Settings, WGSL shader and the blur pass |
 | `motion_blur/mixins/motion_blur/*.rs` | One helper per hook |
@@ -69,3 +77,7 @@ The launcher compiles the mod into the game, so there's no separate build step. 
 ## Credits
 
 Inspired by [natural-motionblur](https://github.com/ItsPasi/natural-motionblur-fabric), [PolyBlur](https://github.com/Polyfrost/PolyBlur) and [motionblur](https://github.com/Noryea/motionblur-fabric).
+
+## License
+
+[MIT](LICENSE)

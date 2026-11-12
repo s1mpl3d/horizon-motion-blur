@@ -1,0 +1,19 @@
+[package]
+name = "horizon-mod-motion-blur"
+version = "1.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+description = "Camera-based motion blur for Horizon, a native mod: the world is blurred along the camera's motion, the hand and HUD stay sharp."
+
+# The mod's logic and its tests: the same file the bundle adds to the game.
+[lib]
+path = "mixins/motion_blur/runtime.rs"
+
+[dependencies]
+glam = "0.30"
+wgpu = { version = "30.0.1", default-features = false, features = ["std", "wgsl"] }
+
+[dev-dependencies]
+# The blur's shader parsed and validated without a GPU.
+naga = { version = "30", features = ["wgsl-in"] }

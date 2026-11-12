@@ -435,6 +435,14 @@ mod tests {
     }
 
     #[test]
+    fn the_shader_validates() {
+        let module = naga::front::wgsl::parse_str(SHADER).expect("WGSL parses");
+        naga::valid::Validator::new(naga::valid::ValidationFlags::all(), naga::valid::Capabilities::empty())
+            .validate(&module)
+            .expect("WGSL validates");
+    }
+
+    #[test]
     fn steady_scales_to_sixty_fps() {
         let s = Settings { strength: 100, samples: 12, steady: true };
         assert!((s.scale(1.0 / 60.0) - 1.0).abs() < 1e-4);
